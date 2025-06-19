@@ -4,16 +4,14 @@ set -euo pipefail
 SHUTDOWN=5
 REBOOTPULSEMINIMUM=200
 REBOOTPULSEMAXIMUM=600
-echo "$SHUTDOWN" > /sys/class/gpio/export
-echo "in" > /sys/class/gpio/gpio$SHUTDOWN/direction
 BOOT=12
-echo "$BOOT" > /sys/class/gpio/export
-echo "out" > /sys/class/gpio/gpio$BOOT/direction
-echo "1" > /sys/class/gpio/gpio$BOOT/value
+
+# Keep the boot line asserted while running
+gpioset --mode=signal --background gpiochip0 $BOOT=1
+boot_pid=$!
 
 cleanup() {
-  echo "$SHUTDOWN" > /sys/class/gpio/unexport
-  echo "$BOOT" > /sys/class/gpio/unexport
+  kill "$boot_pid"
 }
 
 trap cleanup EXIT
@@ -21,7 +19,7 @@ trap cleanup EXIT
 echo "Listening for power button events..."
 
 while true; do
-  shutdownSignal=$(< /sys/class/gpio/gpio"$SHUTDOWN"/value)
+  shutdownSignal=$(gpioget gpiochip0 "$SHUTDOWN")
   if [ "$shutdownSignal" = 0 ]; then
     /bin/sleep 0.2
   else
@@ -33,7 +31,7 @@ while true; do
         sudo poweroff
         exit
       fi
-      shutdownSignal=$(< /sys/class/gpio/gpio"$SHUTDOWN"/value)
+      shutdownSignal=$(gpioget gpiochip0 "$SHUTDOWN")
     done
     if [ $(( $(date +%s%N | cut -b1-13) - pulseStart )) -gt $REBOOTPULSEMINIMUM ]; then
       echo "Reboot button pressed on GPIO $SHUTDOWN, rebooting Rpi..."

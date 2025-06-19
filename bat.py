@@ -1,12 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import struct
-import smbus
 import time
-import RPi.GPIO as GPIO
+from smbus2 import SMBus
+import gpiod
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(13, GPIO.OUT)
+PIN = 13
+CHIP = "gpiochip0"
+
+line = None
+
 
 def readVoltage(bus):
 
@@ -28,36 +30,49 @@ def readCapacity(bus):
      return capacity
 
 
-bus = smbus.SMBus(1)
-
-
 def main():
-    while True:
-        print("******************")
+    global line
+    try:
+        with gpiod.Chip(CHIP) as chip, SMBus(1) as bus:
+            line = chip.get_line(PIN)
+            line.request(consumer="x708_bat", type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
 
-        voltage = readVoltage(bus)
-        capacity = readCapacity(bus)
+            while True:
+                print("******************")
 
-        print("Voltage:%5.2fV" % voltage)
-        print("Battery:%5i%%" % capacity)
+                voltage = readVoltage(bus)
+                capacity = readCapacity(bus)
 
-        if capacity >= 100:
-            print("Battery FULL")
+                print("Voltage:%5.2fV" % voltage)
+                print("Battery:%5i%%" % capacity)
 
-        if capacity < 20:
-            print("Battery Low")
+                if capacity >= 100:
+                    print("Battery FULL")
 
-        # Set battery low voltage to shut down. You can modify this threshold
-        # (range must be 2.5~4.1vdc)
-        if voltage < 3.00:
-            print("Battery LOW!!!")
-            print("Shutdown in 5 seconds")
-            time.sleep(5)
-            GPIO.output(13, GPIO.HIGH)
-            time.sleep(3)
-            GPIO.output(13, GPIO.LOW)
+                if capacity < 20:
+                    print("Battery Low")
 
-        time.sleep(2)
+                # Set battery low voltage to shut down. You can modify this threshold
+                # (range must be 2.5~4.1vdc)
+                if voltage < 3.00:
+                    print("Battery LOW!!!")
+                    print("Shutdown in 5 seconds")
+                    time.sleep(5)
+                    line.set_value(1)
+                    time.sleep(3)
+                    line.set_value(0)
+
+                time.sleep(2)
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        # Ensure the pin is released and set low
+        if line is not None:
+            try:
+                line.set_value(0)
+                line.release()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
