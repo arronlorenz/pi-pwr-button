@@ -1,0 +1,11 @@
+[Unit]
+Description=Monitor X708 shutdown and reboot buttons
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/x708-pwr.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
