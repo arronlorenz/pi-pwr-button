@@ -2,11 +2,11 @@
 import struct
 import time
 from smbus2 import SMBus
-import RPi.GPIO as GPIO
+import gpiod
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(13, GPIO.OUT)
+PIN = 13
+CHIP = "gpiochip0"
+
 
 def readVoltage(bus):
 
@@ -30,7 +30,10 @@ def readCapacity(bus):
 
 def main():
     try:
-        with SMBus(1) as bus:
+        with gpiod.Chip(CHIP) as chip, SMBus(1) as bus:
+            line = chip.get_line(PIN)
+            line.request(consumer="x708_bat", type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
+
             while True:
                 print("******************")
 
@@ -52,15 +55,20 @@ def main():
                     print("Battery LOW!!!")
                     print("Shutdown in 5 seconds")
                     time.sleep(5)
-                    GPIO.output(13, GPIO.HIGH)
+                    line.set_value(1)
                     time.sleep(3)
-                    GPIO.output(13, GPIO.LOW)
+                    line.set_value(0)
 
                 time.sleep(2)
     except KeyboardInterrupt:
         print("Exiting...")
     finally:
-        GPIO.cleanup()
+        # Ensure the pin is released and set low
+        try:
+            line.set_value(0)
+            line.release()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

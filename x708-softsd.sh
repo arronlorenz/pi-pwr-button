@@ -8,16 +8,6 @@ fi
 
 BUTTON=13
 
-echo "$BUTTON" > /sys/class/gpio/export
-echo "out" > /sys/class/gpio/gpio$BUTTON/direction
-echo "1" > /sys/class/gpio/gpio$BUTTON/value
-
-cleanup() {
-  echo "$BUTTON" > /sys/class/gpio/unexport
-}
-
-trap cleanup EXIT
-
 SLEEP=${1:-4}
 
 re='^[0-9\.]+$'
@@ -26,7 +16,15 @@ if ! [[ $SLEEP =~ $re ]] ; then
 fi
 
 echo "Your device will shut down in $SLEEP seconds..."
-/bin/sleep "$SLEEP"
 
-# restore GPIO 13
-echo "0" > /sys/class/gpio/gpio$BUTTON/value
+# Convert the delay to seconds and microseconds for gpioset
+secs=${SLEEP%.*}
+frac=${SLEEP#*.}
+if [[ "$SLEEP" == "$secs" ]]; then
+  usec=0
+else
+  usec=${frac}000000
+  usec=${usec:0:6}
+fi
+
+gpioset --mode=time --sec="$secs" --usec="$usec" gpiochip0 $BUTTON=1
