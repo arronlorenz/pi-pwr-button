@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import os
 import struct
+import sys
 import time
 from smbus2 import SMBus
 import gpiod
@@ -30,6 +32,8 @@ def readCapacity(bus):
 
 def main():
     global line
+    if os.geteuid() != 0:
+        sys.exit("Please run as root.")
     try:
         with gpiod.Chip(CHIP) as chip, SMBus(1) as bus:
             line = chip.get_line(PIN)
