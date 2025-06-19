@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import struct
-import smbus
 import time
+from smbus2 import SMBus
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
@@ -28,36 +28,39 @@ def readCapacity(bus):
      return capacity
 
 
-bus = smbus.SMBus(1)
-
-
 def main():
-    while True:
-        print("******************")
+    try:
+        with SMBus(1) as bus:
+            while True:
+                print("******************")
 
-        voltage = readVoltage(bus)
-        capacity = readCapacity(bus)
+                voltage = readVoltage(bus)
+                capacity = readCapacity(bus)
 
-        print("Voltage:%5.2fV" % voltage)
-        print("Battery:%5i%%" % capacity)
+                print("Voltage:%5.2fV" % voltage)
+                print("Battery:%5i%%" % capacity)
 
-        if capacity >= 100:
-            print("Battery FULL")
+                if capacity >= 100:
+                    print("Battery FULL")
 
-        if capacity < 20:
-            print("Battery Low")
+                if capacity < 20:
+                    print("Battery Low")
 
-        # Set battery low voltage to shut down. You can modify this threshold
-        # (range must be 2.5~4.1vdc)
-        if voltage < 3.00:
-            print("Battery LOW!!!")
-            print("Shutdown in 5 seconds")
-            time.sleep(5)
-            GPIO.output(13, GPIO.HIGH)
-            time.sleep(3)
-            GPIO.output(13, GPIO.LOW)
+                # Set battery low voltage to shut down. You can modify this threshold
+                # (range must be 2.5~4.1vdc)
+                if voltage < 3.00:
+                    print("Battery LOW!!!")
+                    print("Shutdown in 5 seconds")
+                    time.sleep(5)
+                    GPIO.output(13, GPIO.HIGH)
+                    time.sleep(3)
+                    GPIO.output(13, GPIO.LOW)
 
-        time.sleep(2)
+                time.sleep(2)
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        GPIO.cleanup()
 
 
 if __name__ == "__main__":
