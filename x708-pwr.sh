@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+if [[ $EUID -ne 0 ]]; then
+  echo "Please run as root." >&2
+  exit 1
+fi
+
 SHUTDOWN=5
 REBOOTPULSEMINIMUM=200
 REBOOTPULSEMAXIMUM=600
