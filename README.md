@@ -33,3 +33,13 @@ sudo systemctl daemon-reload
 sudo systemctl enable x708-pwr.service
 sudo systemctl start x708-pwr.service
 ```
+
+## Monitoring the UPS battery
+
+The repository also includes `bat.py`, a small Python script that reads the
+battery voltage and capacity from the X708 over I2C. When the voltage drops
+below 3V the script sends a shutdown pulse on GPIO 13. Run it as root:
+
+```bash
+sudo python3 bat.py
+```
