@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+if [[ $EUID -ne 0 ]]; then
+  echo "Please run as root." >&2
+  exit 1
+fi
+
 SHUTDOWN=5
 REBOOTPULSEMINIMUM=200
 REBOOTPULSEMAXIMUM=600
@@ -28,14 +33,14 @@ while true; do
       /bin/sleep 0.02
       if [ $(( $(date +%s%N | cut -b1-13) - pulseStart )) -gt $REBOOTPULSEMAXIMUM ]; then
         echo "Shutdown button held on GPIO $SHUTDOWN, halting Rpi..."
-        sudo poweroff
+        poweroff
         exit
       fi
       shutdownSignal=$(gpioget gpiochip0 "$SHUTDOWN")
     done
     if [ $(( $(date +%s%N | cut -b1-13) - pulseStart )) -gt $REBOOTPULSEMINIMUM ]; then
       echo "Reboot button pressed on GPIO $SHUTDOWN, rebooting Rpi..."
-      sudo reboot
+      reboot
       exit
     fi
   fi
