@@ -6,6 +6,11 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+if ! command -v gpioset >/dev/null; then
+  echo "gpioset not found; please install the gpiod package." >&2
+  exit 1
+fi
+
 BUTTON=13
 
 SLEEP=${1:-4}
