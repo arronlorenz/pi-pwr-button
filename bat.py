@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
+import os
 import struct
+import sys
 import time
-from smbus2 import SMBus
-import gpiod
+
+try:
+    from smbus2 import SMBus
+except ImportError:
+    sys.exit(
+        "The smbus2 module is required. Install it with 'sudo apt-get install "
+        "python3-smbus2' or 'python3 -m pip install smbus2'."
+    )
+
+try:
+    import gpiod
+except ImportError:
+    sys.exit(
+        "The gpiod module is required. Install it with 'sudo apt-get install "
+        "python3-libgpiod'."
+    )
 
 PIN = 13
 CHIP = "gpiochip0"
@@ -30,6 +46,8 @@ def readCapacity(bus):
 
 def main():
     global line
+    if os.geteuid() != 0:
+        sys.exit("Please run as root.")
     try:
         with gpiod.Chip(CHIP) as chip, SMBus(1) as bus:
             line = chip.get_line(PIN)
