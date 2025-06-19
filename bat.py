@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 import struct
 import smbus
-import sys
 import time
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(13, GPIO.OUT)
 GPIO.setwarnings(False)
+GPIO.setup(13, GPIO.OUT)
 
 def readVoltage(bus):
 
@@ -31,27 +30,35 @@ def readCapacity(bus):
 
 bus = smbus.SMBus(1)
 
-while True:
 
- print ("******************")
- print ("Voltage:%5.2fV" % readVoltage(bus))
+def main():
+    while True:
+        print("******************")
 
- print ("Battery:%5i%%" % readCapacity(bus))
+        voltage = readVoltage(bus)
+        capacity = readCapacity(bus)
 
- if readCapacity(bus) >= 100:
-         print ("Battery FULL")
+        print("Voltage:%5.2fV" % voltage)
+        print("Battery:%5i%%" % capacity)
 
- if readCapacity(bus) < 20:
-         print ("Battery Low")
+        if capacity >= 100:
+            print("Battery FULL")
 
-#Set battery low voltage to shut down, You can modify this voltage threshold (the voltage threshold range must be 2.5~4.1vdc)
- if readVoltage(bus) < 3.00:
+        if capacity < 20:
+            print("Battery Low")
 
-         print ("Battery LOW!!!")
-         print ("Shutdown in 5 seconds")
-         time.sleep(5)
-         GPIO.output(13, GPIO.HIGH)
-         time.sleep(3)
-         GPIO.output(13, GPIO.LOW)
+        # Set battery low voltage to shut down. You can modify this threshold
+        # (range must be 2.5~4.1vdc)
+        if voltage < 3.00:
+            print("Battery LOW!!!")
+            print("Shutdown in 5 seconds")
+            time.sleep(5)
+            GPIO.output(13, GPIO.HIGH)
+            time.sleep(3)
+            GPIO.output(13, GPIO.LOW)
 
- time.sleep(2)
+        time.sleep(2)
+
+
+if __name__ == "__main__":
+    main()
