@@ -6,6 +6,20 @@ Run the `x708-pwr.sh` script as root to monitor the shutdown and reboot
 buttons. The script automatically cleans up the GPIO pins on exit so it
 can be safely integrated into a service.
 
+Use `x708-softsd.sh` to signal the UPS to cut power after a short delay.
+Pass the delay in seconds as an optional argument (defaults to 4). The
+script must also be run as root.
+
+## Triggering a soft shutdown
+
+Run the soft shutdown script before halting the Pi to let the UPS know it
+should cut power:
+
+```bash
+sudo ./x708-softsd.sh 6
+sudo shutdown -h now
+```
+
 ## Running as a service
 
 The repository includes a systemd unit file for running the power button
