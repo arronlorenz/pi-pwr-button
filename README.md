@@ -7,6 +7,9 @@ Utilities for handling power events on the X708 UPS for the Raspberry Pi 4.
 - `gpiod` for the `gpioset`/`gpioget` tools
 - Python 3 with the `smbus2` and `gpiod` packages
 
+The scripts check that these tools are installed and will exit with an error if
+they are missing.
+
 Install them on a Debian-based system with:
 
 ```bash
@@ -25,6 +28,17 @@ install the `gpiod` Python package with pip:
 
 ```bash
 python3 -m pip install gpiod
+```
+
+## Installation script
+
+The repository provides an interactive `install.sh` helper. Run it as root to
+copy the scripts to `/usr/local/bin` and optionally set up the `x708-pwr.sh`
+service. The installer can also install the required `gpiod` and Python
+packages for you.
+
+```bash
+sudo ./install.sh
 ```
 
 ## Scripts
