@@ -33,9 +33,9 @@ python3 -m pip install gpiod
 ## Installation script
 
 The repository provides an interactive `install.sh` helper. Run it as root to
-copy the scripts to `/usr/local/bin` and optionally set up the `x708-pwr.sh`
-service. The installer can also install the required `gpiod` and Python
-packages for you.
+copy the scripts to `/usr/local/bin` and optionally set up the services for
+`x708-pwr.sh` and `bat.py`. The installer can also install the required
+`gpiod` and Python packages for you.
 
 ```bash
 sudo ./install.sh
@@ -71,7 +71,7 @@ run as root so it can access I2C and GPIO.
 
 ### Running as a service
 
-The repository includes a systemd unit file. It runs `x708-pwr.sh` as root so
+The repository includes systemd unit files. One runs `x708-pwr.sh` as root so
 it can control the GPIO hardware. Copy the files and enable the unit with:
 
 ```bash
@@ -80,6 +80,17 @@ sudo cp x708-pwr.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable x708-pwr.service
 sudo systemctl start x708-pwr.service
+```
+
+Another unit file runs `bat.py` to monitor the battery level and trigger a
+shutdown when it becomes too low:
+
+```bash
+sudo cp bat.py /usr/local/bin/
+sudo cp x708-bat.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable x708-bat.service
+sudo systemctl start x708-bat.service
 ```
 
 ## Monitoring the UPS battery

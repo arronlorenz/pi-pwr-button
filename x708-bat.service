@@ -1,0 +1,11 @@
+[Unit]
+Description=Monitor X708 battery level
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/bat.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

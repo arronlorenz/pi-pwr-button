@@ -57,6 +57,17 @@ install_bat() {
   sed -i "s/^PIN = .*/PIN = ${pin:-13}/" "$INSTALL_DIR/bat.py"
   read -p "Shutdown voltage threshold [3.00]: " thr
   sed -i "s/voltage < [0-9.]*:/voltage < ${thr:-3.00}:/" "$INSTALL_DIR/bat.py"
+  read -p "Install bat.py as a service? [y/N] " svc
+  if [[ $svc =~ ^[Yy]$ ]]; then
+    cp x708-bat.service "$SERVICE_DIR/"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/bat.py|" "$SERVICE_DIR/x708-bat.service"
+    systemctl daemon-reload
+    systemctl enable x708-bat.service
+    read -p "Start service now? [y/N] " startsvc
+    if [[ $startsvc =~ ^[Yy]$ ]]; then
+      systemctl start x708-bat.service
+    fi
+  fi
 }
 
 read -p "Install x708-pwr.sh (monitor buttons)? [y/N] " resp
