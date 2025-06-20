@@ -36,6 +36,8 @@ The repository provides an interactive `install.sh` helper. Run it as root to
 copy the scripts to `/usr/local/bin` and optionally set up the services for
 `x708-pwr.sh` and `bat.py`. The installer can also install the required
 `gpiod` and Python packages for you.
+After installing dependencies, it prints the current battery voltage so you can
+verify that the UPS HAT and battery are detected.
 
 ```bash
 sudo ./install.sh

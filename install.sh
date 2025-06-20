@@ -27,6 +27,25 @@ if [[ $ans =~ ^[Yy]$ ]]; then
   fi
 fi
 
+echo "Checking battery voltage..."
+python3 - <<'EOF'
+import struct
+from smbus2 import SMBus
+
+def read_voltage(bus):
+    addr = 0x36
+    raw = bus.read_word_data(addr, 2)
+    swap = struct.unpack('<H', struct.pack('>H', raw))[0]
+    return swap * 1.25 / 1000 / 16
+
+try:
+    with SMBus(1) as bus:
+        v = read_voltage(bus)
+    print(f"Voltage: {v:.2f}V")
+except Exception as e:
+    print(f"Could not read voltage: {e}")
+EOF
+
 install_x708_pwr() {
   echo "Installing x708-pwr.sh..."
   cp x708-pwr.sh "$INSTALL_DIR/"
