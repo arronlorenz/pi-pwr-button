@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess
+import sys
 import time
 
-from gpiozero import OutputDevice
+try:
+    import gpiod
+except ImportError:
+    sys.exit(
+        "The gpiod module is required. Install it with 'sudo apt-get install "
+        "python3-libgpiod'."
+    )
 
 
-ON_THRESHOLD = 55  # (degrees Celsius) Fan running at high speed at this temperature.
-OFF_THRESHOLD = 50  # (degress Celsius) Fan running at low speed  at this temperature.
-SLEEP_INTERVAL = 5  # (seconds) How often we check the core temperature.
-GPIO_PIN = 16  # Which GPIO pin you're using to control the fan. DON'T change it!
+ON_THRESHOLD = 55  # (degrees Celsius) Fan turns on above this temperature.
+OFF_THRESHOLD = 50  # (degrees Celsius) Fan turns off below this temperature.
+SLEEP_INTERVAL = 5  # (seconds) How often to check the core temperature.
+GPIO_PIN = 16  # GPIO pin used to control the fan.
+CHIP = "gpiochip0"
 
 
 def get_temp():
@@ -20,33 +29,40 @@ def get_temp():
     Returns:
         float: The core temperature in degrees Celsius.
     """
-    output = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True)
+    output = subprocess.run(["vcgencmd", "measure_temp"], capture_output=True)
     temp_str = output.stdout.decode()
     try:
-        return float(temp_str.split('=')[1].split('\'')[0])
+        return float(temp_str.split("=")[1].split("'")[0])
     except (IndexError, ValueError):
         raise RuntimeError('Could not parse temperature output.')
 
 
 if __name__ == '__main__':
-    # Validate the on and off thresholds
     if OFF_THRESHOLD >= ON_THRESHOLD:
         raise RuntimeError('OFF_THRESHOLD must be less than ON_THRESHOLD')
+    if os.geteuid() != 0:
+        sys.exit('Please run as root.')
 
-    fan = OutputDevice(GPIO_PIN)
+    with gpiod.Chip(CHIP) as chip:
+        line = chip.get_line(GPIO_PIN)
+        line.request(consumer='fan_ctrl', type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
 
-    while True:
-        temp = get_temp()
+        try:
+            while True:
+                temp = get_temp()
 
-        # Fan running at high speed fan if the temperature has reached the limit and the fan
-        # isn't already running.
-        # NOTE: `fan.value` returns 1 for "on" and 0 for "off"
-        if temp > ON_THRESHOLD and not fan.value:
-            fan.on()
+                if temp > ON_THRESHOLD and not line.get_value():
+                    line.set_value(1)
+                elif line.get_value() and temp < OFF_THRESHOLD:
+                    line.set_value(0)
 
-        # Run running at low speed if the fan is running and the temperature has dropped
-        # to 10 degrees below the limit.
-        elif fan.value and temp < OFF_THRESHOLD:
-            fan.off()
+                time.sleep(SLEEP_INTERVAL)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            try:
+                line.set_value(0)
+                line.release()
+            except Exception:
+                pass
 
-        time.sleep(SLEEP_INTERVAL)
