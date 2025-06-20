@@ -23,6 +23,10 @@ except ImportError:
 PIN = 13
 CHIP = "gpiochip0"
 
+# How often to check the battery state. The Pi can run on battery for hours
+# so reading once per minute is sufficient.
+CHECK_INTERVAL = 60
+
 line = None
 
 
@@ -78,7 +82,7 @@ def main():
                     time.sleep(3)
                     line.set_value(0)
 
-                time.sleep(2)
+                time.sleep(CHECK_INTERVAL)
     except KeyboardInterrupt:
         print("Exiting...")
     finally:

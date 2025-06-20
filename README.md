@@ -65,9 +65,9 @@ sudo shutdown -h now
 ```
 
 ### bat.py
-Reads battery voltage and capacity over I2C. When the voltage falls below
-3&nbsp;V it toggles the shutdown line via `gpiod`. This script must also be
-run as root so it can access I2C and GPIO.
+Reads battery voltage and capacity over I2C once per minute. When the voltage
+falls below 3&nbsp;V it toggles the shutdown line via `gpiod`. This script must
+also be run as root so it can access I2C and GPIO.
 
 ### Running as a service
 
@@ -96,8 +96,8 @@ sudo systemctl start x708-bat.service
 ## Monitoring the UPS battery
 
 `bat.py` reads the battery voltage and capacity from the X708 over I2C using
-`smbus2`. When the voltage drops below 3&nbsp;V the script toggles the shutdown
-line via `gpiod`. Run it as root:
+`smbus2`. It polls once per minute and when the voltage drops below 3&nbsp;V the
+script toggles the shutdown line via `gpiod`. Run it as root:
 
 ```bash
 sudo python3 bat.py
