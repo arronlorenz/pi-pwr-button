@@ -12,7 +12,19 @@ fi
 read -p "Install dependencies via apt-get? [y/N] " ans
 if [[ $ans =~ ^[Yy]$ ]]; then
   apt-get update
-  apt-get install -y gpiod python3-smbus2 python3-libgpiod || true
+  # gpiod provides the gpioset/gpioget tools and has no pip equivalent
+  if ! apt-get install -y gpiod; then
+    echo "Failed to install gpiod with apt. Please install it manually." >&2
+  fi
+
+  # Install Python packages; fall back to pip if apt fails
+  if ! apt-get install -y python3-smbus2; then
+    python3 -m pip install --break-system-packages --upgrade smbus2
+  fi
+
+  if ! apt-get install -y python3-libgpiod; then
+    python3 -m pip install --break-system-packages --upgrade gpiod
+  fi
 fi
 
 install_x708_pwr() {
