@@ -120,3 +120,7 @@ script toggles the shutdown line via `gpiod`. Run it as root:
 ```bash
 sudo python3 bat.py
 ```
+
+## License
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
