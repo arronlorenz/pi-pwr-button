@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -11,6 +12,11 @@ except ImportError:
     sys.exit(
         "The gpiod module is required. Install it with 'sudo apt-get install "
         "python3-libgpiod'."
+    )
+
+if shutil.which("vcgencmd") is None:
+    sys.exit(
+        "vcgencmd command not found; install the 'libraspberrypi-bin' package."
     )
 
 
