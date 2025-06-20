@@ -34,7 +34,7 @@ python3 -m pip install gpiod
 
 The repository provides an interactive `install.sh` helper. Run it as root to
 copy the scripts to `/usr/local/bin` and optionally set up the services for
-`x708-pwr.sh` and `bat.py`. The installer can also install the required
+`x708-pwr.sh`, `bat.py`, and `fan.py`. The installer can also install the required
 `gpiod` and Python packages for you.
 
 ```bash
@@ -69,6 +69,14 @@ Reads battery voltage and capacity over I2C once per minute. When the voltage
 falls below 3&nbsp;V it toggles the shutdown line via `gpiod`. This script must
 also be run as root so it can access I2C and GPIO.
 
+### fan.py
+Controls a cooling fan connected to a GPIO pin based on the CPU temperature.
+It polls the temperature every few seconds using `vcgencmd` and turns the fan
+on above the configured threshold. The fan is switched off again when the
+temperature falls below a lower threshold. Run the script as root so it can
+access the GPIO line. A `fan.service` unit is provided to run it
+automatically.
+
 ### Running as a service
 
 The repository includes systemd unit files. One runs `x708-pwr.sh` as root so
@@ -91,6 +99,16 @@ sudo cp x708-bat.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable x708-bat.service
 sudo systemctl start x708-bat.service
+```
+
+A third unit file runs `fan.py` to automatically control the cooling fan:
+
+```bash
+sudo cp fan.py /usr/local/bin/
+sudo cp fan.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable fan.service
+sudo systemctl start fan.service
 ```
 
 ## Monitoring the UPS battery

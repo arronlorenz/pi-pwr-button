@@ -82,6 +82,29 @@ install_bat() {
   fi
 }
 
+install_fan() {
+  echo "Installing fan.py..."
+  cp fan.py "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/fan.py"
+  read -r -p "GPIO pin for fan control [16]: " pin
+  sed -i "s/^GPIO_PIN = .*/GPIO_PIN = ${pin:-16}/" "$INSTALL_DIR/fan.py"
+  read -r -p "Temp to start fan (C) [55]: " on
+  sed -i "s/^ON_THRESHOLD = .*/ON_THRESHOLD = ${on:-55}/" "$INSTALL_DIR/fan.py"
+  read -r -p "Temp to stop fan (C) [50]: " off
+  sed -i "s/^OFF_THRESHOLD = .*/OFF_THRESHOLD = ${off:-50}/" "$INSTALL_DIR/fan.py"
+  read -r -p "Install fan.py as a service? [y/N] " svc
+  if [[ $svc =~ ^[Yy]$ ]]; then
+    cp fan.service "$SERVICE_DIR/"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/fan.py|" "$SERVICE_DIR/fan.service"
+    systemctl daemon-reload
+    systemctl enable fan.service
+    read -r -p "Start service now? [y/N] " startsvc
+    if [[ $startsvc =~ ^[Yy]$ ]]; then
+      systemctl start fan.service
+    fi
+  fi
+}
+
 read -r -p "Install x708-pwr.sh (monitor buttons)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_x708_pwr
@@ -95,6 +118,11 @@ fi
 read -r -p "Install bat.py (monitor battery)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_bat
+fi
+
+read -r -p "Install fan.py (control fan)? [y/N] " resp
+if [[ $resp =~ ^[Yy]$ ]]; then
+  install_fan
 fi
 
 echo "Installation complete."

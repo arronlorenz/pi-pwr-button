@@ -1,0 +1,11 @@
+[Unit]
+Description=Control cooling fan based on CPU temperature
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/fan.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
