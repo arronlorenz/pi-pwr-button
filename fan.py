@@ -29,8 +29,10 @@ def get_temp():
     Returns:
         float: The core temperature in degrees Celsius.
     """
-    output = subprocess.run(["vcgencmd", "measure_temp"], capture_output=True)
-    temp_str = output.stdout.decode()
+    output = subprocess.run(
+        ["vcgencmd", "measure_temp"], capture_output=True, text=True, check=True
+    )
+    temp_str = output.stdout.strip()
     try:
         return float(temp_str.split("=")[1].split("'")[0])
     except (IndexError, ValueError):

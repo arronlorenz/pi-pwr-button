@@ -69,6 +69,15 @@ Reads battery voltage and capacity over I2C. When the voltage falls below
 3&nbsp;V it toggles the shutdown line via `gpiod`. This script must also be
 run as root so it can access I2C and GPIO.
 
+### fan.py
+Controls a cooling fan on GPIO&nbsp;16 using `gpiod`. The fan turns on when the
+core temperature rises above 55&nbsp;&deg;C and turns off when it drops below
+50&nbsp;&deg;C. Run the script as root:
+
+```bash
+sudo python3 fan.py
+```
+
 ### Running as a service
 
 The repository includes systemd unit files. One runs `x708-pwr.sh` as root so
