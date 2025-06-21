@@ -9,6 +9,12 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# Determine whether pip supports --break-system-packages
+PIP_FLAG=""
+if python3 -m pip install --help 2>&1 | grep -q -- '--break-system-packages'; then
+  PIP_FLAG="--break-system-packages"
+fi
+
 read -r -p "Install dependencies via apt-get? [y/N] " ans
 if [[ $ans =~ ^[Yy]$ ]]; then
   apt-get update
@@ -19,11 +25,11 @@ if [[ $ans =~ ^[Yy]$ ]]; then
 
   # Install Python packages; fall back to pip if apt fails
   if ! apt-get install -y python3-smbus2; then
-    python3 -m pip install --break-system-packages --upgrade smbus2
+    python3 -m pip install ${PIP_FLAG:+$PIP_FLAG }--upgrade smbus2
   fi
 
   if ! apt-get install -y python3-libgpiod; then
-    python3 -m pip install --break-system-packages --upgrade gpiod
+    python3 -m pip install ${PIP_FLAG:+$PIP_FLAG }--upgrade gpiod
   fi
 fi
 
