@@ -21,8 +21,8 @@ sudo apt-get install gpiod i2c-tools libraspberrypi-bin
 
 The repository provides an interactive `install.sh` helper. Run it as root to
 copy the scripts to `/usr/local/bin` and optionally set up the services for
-`x708-pwr.sh`, `x708-bat.sh`, and `x708-fan.sh`. The installer can also install the required
-packages for you.
+`x708-pwr.sh`, `x708-bat.sh`, and `x708-fan.sh`. After choosing which scripts to
+install, the helper offers to install only the packages needed for them.
 
 ```bash
 sudo ./install.sh
