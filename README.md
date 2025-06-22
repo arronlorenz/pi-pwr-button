@@ -82,10 +82,11 @@ temperature falls below a lower threshold. Run the script as root so it can
 access the GPIO line. A `fan.service` unit is provided to run it
 automatically.
 
-Both Python scripts open `/dev/gpiochip0` by default. Set the `GPIO_CHIP`
-environment variable to point at a different chip path if needed. They check
-for `gpiod.Chip.OPEN_BY_PATH` and fall back to the older constructor when the
-flag is missing so that either gpiod 1.x or 2.x can be used.
+All scripts use `/dev/gpiochip0` by default. Set the `GPIO_CHIP` environment
+variable (or override it in the service unit) to point at a different chip
+path if needed. The Python scripts check for `gpiod.Chip.OPEN_BY_PATH` and fall
+back to the older constructor when the flag is missing so that either gpiod 1.x
+or 2.x can be used.
 
 ### Running as a service
 
