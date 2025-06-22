@@ -40,32 +40,37 @@ cleanup() {
 trap cleanup EXIT
 
 start_fan() {
+  local curr_temp=$1
   cleanup
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=1" &
   fan_pid=$!
   state=1
-  log "Fan ON  (temp ${temp_int}°C ≥ $ON_THRESHOLD°C)"
+  log "Fan ON  (temp ${curr_temp}°C ≥ $ON_THRESHOLD°C)"
 }
 
 stop_fan() {
+  local curr_temp=$1
   cleanup
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=0" &
   fan_pid=$!
   state=0
-  log "Fan OFF (temp ${temp_int}°C ≤ $OFF_THRESHOLD°C)"
+  log "Fan OFF (temp ${curr_temp}°C ≤ $OFF_THRESHOLD°C)"
 }
 
+temp=$(vcgencmd measure_temp | awk -F"[='C]" '{print $2}')
+temp_int=$(printf '%.0f' "$temp")
+
 state=0
-stop_fan
+stop_fan "$temp_int"
 
 while true; do
   temp=$(vcgencmd measure_temp | awk -F"[='C]" '{print $2}')
   temp_int=$(printf '%.0f' "$temp")
 
   if (( temp_int > ON_THRESHOLD && state == 0 )); then
-    start_fan
+    start_fan "$temp_int"
   elif (( temp_int < OFF_THRESHOLD && state == 1 )); then
-    stop_fan
+    stop_fan "$temp_int"
   fi
 
   sleep "$SLEEP_INTERVAL"
