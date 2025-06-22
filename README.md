@@ -17,19 +17,15 @@ Install them on a Debian-based system with:
 sudo apt-get install gpiod python3-libgpiod python3-smbus2
 ```
 
-If `python3-smbus2` is missing you can install `smbus2` with pip. Use the
-`--break-system-packages` flag if your pip version supports it:
+If the `python3-smbus2` package is missing you can install `smbus2` with pip.
+Use the `--break-system-packages` flag only when your pip version supports it:
 
 ```bash
-python3 -m pip install smbus2 --break-system-packages
-```
-
-If pip reports that the flag is unknown, upgrade pip first and run the command
-again:
-
-```bash
-python3 -m pip install --upgrade pip
-python3 -m pip install smbus2 --break-system-packages
+if python3 -m pip install --help | grep -q -- --break-system-packages; then
+  python3 -m pip install smbus2 --break-system-packages
+else
+  python3 -m pip install smbus2
+fi
 ```
 
 If `python3-libgpiod` is not available,

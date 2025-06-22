@@ -11,7 +11,7 @@ fi
 
 # Determine whether pip supports --break-system-packages
 PIP_FLAG=""
-if python3 -m pip install --help 2>&1 | grep -q -- '--break-system-packages'; then
+if python3 -m pip install --help | grep -q -- --break-system-packages; then
   PIP_FLAG="--break-system-packages"
 fi
 
