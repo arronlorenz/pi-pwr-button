@@ -24,7 +24,9 @@ ON_THRESHOLD = 55  # (degrees Celsius) Fan turns on above this temperature.
 OFF_THRESHOLD = 50  # (degrees Celsius) Fan turns off below this temperature.
 SLEEP_INTERVAL = 5  # (seconds) How often to check the core temperature.
 GPIO_PIN = 16  # GPIO pin used to control the fan.
-CHIP = "gpiochip0"
+# Allow overriding the GPIO chip path with the GPIO_CHIP environment variable.
+# Default to using /dev/gpiochip0 which works on most systems.
+CHIP = os.environ.get("GPIO_CHIP", "/dev/gpiochip0")
 
 
 def get_temp():
@@ -50,7 +52,7 @@ if __name__ == '__main__':
         sys.exit('Please run as root.')
 
     try:
-        chip = gpiod.Chip(CHIP)
+        chip = gpiod.Chip(CHIP, gpiod.Chip.OPEN_BY_PATH)
     except OSError as e:
         sys.exit(f"Failed to open GPIO chip '{CHIP}': {e}")
 
