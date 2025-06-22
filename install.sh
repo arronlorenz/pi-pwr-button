@@ -52,17 +52,17 @@ install_x708_softsd() {
 }
 
 install_bat() {
-  echo "Installing bat.sh..."
-  cp bat.sh "$INSTALL_DIR/"
-  chmod +x "$INSTALL_DIR/bat.sh"
+  echo "Installing x708-bat.sh..."
+  cp x708-bat.sh "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/x708-bat.sh"
   read -r -p "GPIO for shutdown line [13]: " pin
-  sed -i "s/^PIN=.*/PIN=${pin:-13}/" "$INSTALL_DIR/bat.sh"
+  sed -i "s/^PIN=.*/PIN=${pin:-13}/" "$INSTALL_DIR/x708-bat.sh"
   read -r -p "Shutdown voltage threshold [3.00]: " thr
-  sed -i "s/^SHUTDOWN_VOLTAGE=.*/SHUTDOWN_VOLTAGE=${thr:-3.00}/" "$INSTALL_DIR/bat.sh"
-  read -r -p "Install bat.sh as a service? [y/N] " svc
+  sed -i "s/^SHUTDOWN_VOLTAGE=.*/SHUTDOWN_VOLTAGE=${thr:-3.00}/" "$INSTALL_DIR/x708-bat.sh"
+  read -r -p "Install x708-bat.sh as a service? [y/N] " svc
   if [[ $svc =~ ^[Yy]$ ]]; then
     cp x708-bat.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/bat.sh|" "$SERVICE_DIR/x708-bat.service"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-bat.sh|" "$SERVICE_DIR/x708-bat.service"
     systemctl daemon-reload
     systemctl enable x708-bat.service
     read -r -p "Start service now? [y/N] " startsvc
@@ -73,19 +73,19 @@ install_bat() {
 }
 
 install_fan() {
-  echo "Installing fan.sh..."
-  cp fan.sh "$INSTALL_DIR/"
-  chmod +x "$INSTALL_DIR/fan.sh"
+  echo "Installing x708-fan.sh..."
+  cp x708-fan.sh "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/x708-fan.sh"
   read -r -p "GPIO pin for fan control [16]: " pin
-  sed -i "s/^GPIO_PIN=.*/GPIO_PIN=${pin:-16}/" "$INSTALL_DIR/fan.sh"
+  sed -i "s/^GPIO_PIN=.*/GPIO_PIN=${pin:-16}/" "$INSTALL_DIR/x708-fan.sh"
   read -r -p "Temp to start fan (C) [55]: " on
-  sed -i "s/^ON_THRESHOLD=.*/ON_THRESHOLD=${on:-55}/" "$INSTALL_DIR/fan.sh"
+  sed -i "s/^ON_THRESHOLD=.*/ON_THRESHOLD=${on:-55}/" "$INSTALL_DIR/x708-fan.sh"
   read -r -p "Temp to stop fan (C) [50]: " off
-  sed -i "s/^OFF_THRESHOLD=.*/OFF_THRESHOLD=${off:-50}/" "$INSTALL_DIR/fan.sh"
-  read -r -p "Install fan.sh as a service? [y/N] " svc
+  sed -i "s/^OFF_THRESHOLD=.*/OFF_THRESHOLD=${off:-50}/" "$INSTALL_DIR/x708-fan.sh"
+  read -r -p "Install x708-fan.sh as a service? [y/N] " svc
   if [[ $svc =~ ^[Yy]$ ]]; then
     cp fan.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/fan.sh|" "$SERVICE_DIR/fan.service"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-fan.sh|" "$SERVICE_DIR/fan.service"
     systemctl daemon-reload
     systemctl enable fan.service
     read -r -p "Start service now? [y/N] " startsvc
@@ -105,12 +105,12 @@ if [[ $resp =~ ^[Yy]$ ]]; then
   install_x708_softsd
 fi
 
-read -r -p "Install bat.sh (monitor battery)? [y/N] " resp
+read -r -p "Install x708-bat.sh (monitor battery)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_bat
 fi
 
-read -r -p "Install fan.sh (control fan)? [y/N] " resp
+read -r -p "Install x708-fan.sh (control fan)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_fan
 fi

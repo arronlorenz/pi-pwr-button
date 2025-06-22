@@ -21,7 +21,7 @@ sudo apt-get install gpiod i2c-tools libraspberrypi-bin
 
 The repository provides an interactive `install.sh` helper. Run it as root to
 copy the scripts to `/usr/local/bin` and optionally set up the services for
-`x708-pwr.sh`, `bat.sh`, and `fan.sh`. The installer can also install the required
+`x708-pwr.sh`, `x708-bat.sh`, and `x708-fan.sh`. The installer can also install the required
 packages for you.
 
 ```bash
@@ -51,12 +51,12 @@ sudo ./x708-softsd.sh 6
 sudo shutdown -h now
 ```
 
-### bat.sh
+### x708-bat.sh
 Reads battery voltage and capacity over I2C once per minute using `i2cget`.
 When the voltage falls below 3&nbsp;V it pulses the shutdown line with
 `gpioset`. This script must run as root so it can access I2C and GPIO.
 
-### fan.sh
+### x708-fan.sh
 Controls a cooling fan connected to a GPIO pin based on the CPU temperature.
 It polls the temperature every few seconds using `vcgencmd` and turns the fan
 on above the configured threshold. The fan is switched off again when the
@@ -80,21 +80,21 @@ sudo systemctl enable x708-pwr.service
 sudo systemctl start x708-pwr.service
 ```
 
-Another unit file runs `bat.sh` to monitor the battery level and trigger a
+Another unit file runs `x708-bat.sh` to monitor the battery level and trigger a
 shutdown when it becomes too low:
 
 ```bash
-sudo cp bat.sh /usr/local/bin/
+sudo cp x708-bat.sh /usr/local/bin/
 sudo cp x708-bat.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable x708-bat.service
 sudo systemctl start x708-bat.service
 ```
 
-A third unit file runs `fan.sh` to automatically control the cooling fan:
+A third unit file runs `x708-fan.sh` to automatically control the cooling fan:
 
 ```bash
-sudo cp fan.sh /usr/local/bin/
+sudo cp x708-fan.sh /usr/local/bin/
 sudo cp fan.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable fan.service
@@ -106,7 +106,7 @@ sudo systemctl start fan.service
 ### Enabling the I²C interface
 
 The UPS communicates over the Pi's I²C bus. Make sure the interface is enabled
-before running `bat.sh` or the `x708-bat.service` unit. Use
+before running `x708-bat.sh` or the `x708-bat.service` unit. Use
 `raspi-config` to enable it under **Interface Options &rarr; I2C**:
 
 ```bash
@@ -119,12 +119,12 @@ Alternatively edit `/boot/config.txt` and add
 If the battery service fails to start with errors related to I²C, double-check
 that the interface is enabled and that you have rebooted after making changes.
 
-`bat.sh` reads the battery voltage and capacity from the X708 over I2C using
+`x708-bat.sh` reads the battery voltage and capacity from the X708 over I2C using
 `i2cget`. It polls once per minute and when the voltage drops below 3&nbsp;V the
 script pulses the shutdown line with `gpioset`. Run it as root:
 
 ```bash
-sudo ./bat.sh
+sudo ./x708-bat.sh
 ```
 
 ## License

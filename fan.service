@@ -5,7 +5,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Environment=GPIO_CHIP=/dev/gpiochip0
-ExecStart=/usr/local/bin/fan.sh
+ExecStart=/usr/local/bin/x708-fan.sh
 Restart=on-failure
 
 [Install]
