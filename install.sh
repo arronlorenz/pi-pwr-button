@@ -11,10 +11,37 @@ fi
 
 # Packages required by the selected scripts
 packages=()
+# Packages that have already been installed
+installed_pkgs=()
+
+install_packages() {
+  if (( ${#packages[@]} )); then
+    mapfile -t uniq_pkgs < <(printf '%s\n' "${packages[@]}" | sort -u)
+    to_install=()
+    for p in "${uniq_pkgs[@]}"; do
+      if [[ " ${installed_pkgs[*]} " != *" $p "* ]]; then
+        to_install+=("$p")
+      fi
+    done
+    if (( ${#to_install[@]} )); then
+      pkg_list="${to_install[*]}"
+      read -r -p "Install required packages: $pkg_list ? [y/N] " ans
+      if [[ $ans =~ ^[Yy]$ ]]; then
+        apt-get update
+        if apt-get install -y "${to_install[@]}"; then
+          installed_pkgs+=("${to_install[@]}")
+        else
+          echo "Failed to install dependencies with apt. Please install them manually." >&2
+        fi
+      fi
+    fi
+  fi
+}
 
 install_x708_pwr() {
   echo "Installing x708-pwr.sh..."
   packages+=(gpiod)
+  install_packages
   cp x708-pwr.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-pwr.sh"
   read -r -p "GPIO for shutdown button [5]: " shutdown
@@ -42,6 +69,7 @@ install_x708_pwr() {
 install_x708_softsd() {
   echo "Installing x708-softsd.sh..."
   packages+=(gpiod)
+  install_packages
   cp x708-softsd.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-softsd.sh"
   read -r -p "GPIO for power cut signal [13]: " button
@@ -51,6 +79,7 @@ install_x708_softsd() {
 install_bat() {
   echo "Installing x708-bat.sh..."
   packages+=(gpiod i2c-tools)
+  install_packages
   cp x708-bat.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-bat.sh"
   read -r -p "GPIO for shutdown line [13]: " pin
@@ -73,6 +102,7 @@ install_bat() {
 install_fan() {
   echo "Installing x708-fan.sh..."
   packages+=(gpiod libraspberrypi-bin)
+  install_packages
   cp x708-fan.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-fan.sh"
   read -r -p "GPIO pin for fan control [16]: " pin
@@ -112,18 +142,6 @@ fi
 read -r -p "Install x708-fan.sh (control fan)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_fan
-fi
-
-if (( ${#packages[@]} )); then
-  mapfile -t uniq_pkgs < <(printf '%s\n' "${packages[@]}" | sort -u)
-  pkg_list="${uniq_pkgs[*]}"
-  read -r -p "Install required packages: $pkg_list ? [y/N] " ans
-  if [[ $ans =~ ^[Yy]$ ]]; then
-    apt-get update
-    if ! apt-get install -y "${uniq_pkgs[@]}"; then
-      echo "Failed to install dependencies with apt. Please install them manually." >&2
-    fi
-  fi
 fi
 
 echo "Installation complete."
