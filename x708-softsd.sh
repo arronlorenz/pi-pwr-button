@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Allow overriding the GPIO chip path.
+GPIO_CHIP="${GPIO_CHIP:-/dev/gpiochip0}"
+
 if [[ $EUID -ne 0 ]]; then
   echo "Please run as root." >&2
   exit 1
@@ -32,4 +35,4 @@ else
   usec=${usec:0:6}
 fi
 
-gpioset --mode=time --sec="$secs" --usec="$usec" gpiochip0 $BUTTON=1
+gpioset --mode=time --sec="$secs" --usec="$usec" "$GPIO_CHIP" "$BUTTON=1"

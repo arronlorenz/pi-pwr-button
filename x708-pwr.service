@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
+Environment=GPIO_CHIP=/dev/gpiochip0
 ExecStart=/usr/local/bin/x708-pwr.sh
 Restart=on-failure
 

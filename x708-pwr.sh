@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Allow overriding the GPIO chip path.
+GPIO_CHIP="${GPIO_CHIP:-/dev/gpiochip0}"
+
 if [[ $EUID -ne 0 ]]; then
   echo "Please run as root." >&2
   exit 1
@@ -28,7 +31,7 @@ cleanup() {
 
 # Keep the boot line asserted while running
 err_file="$(mktemp)"
-gpioset --mode=signal gpiochip0 "$BOOT=1" 2>"$err_file" &
+gpioset --mode=signal "$GPIO_CHIP" "$BOOT=1" 2>"$err_file" &
 boot_pid=$!
 
 sleep 0.1
@@ -45,7 +48,7 @@ trap cleanup EXIT
 echo "Listening for power button events..."
 
 while true; do
-  shutdownSignal=$(gpioget gpiochip0 "$SHUTDOWN")
+  shutdownSignal=$(gpioget "$GPIO_CHIP" "$SHUTDOWN")
   if [ "$shutdownSignal" = 0 ]; then
     /bin/sleep 0.2
   else
@@ -57,7 +60,7 @@ while true; do
         poweroff
         exit
       fi
-      shutdownSignal=$(gpioget gpiochip0 "$SHUTDOWN")
+      shutdownSignal=$(gpioget "$GPIO_CHIP" "$SHUTDOWN")
     done
     if [ $(( $(date +%s%N | cut -b1-13) - pulseStart )) -gt $REBOOTPULSEMINIMUM ]; then
       echo "Reboot button pressed on GPIO $SHUTDOWN, rebooting Rpi..."
