@@ -53,7 +53,17 @@ def main():
     if os.geteuid() != 0:
         sys.exit("Please run as root.")
     try:
-        with gpiod.Chip(CHIP) as chip, SMBus(1) as bus:
+        chip = gpiod.Chip(CHIP)
+    except OSError as e:
+        sys.exit(f"Failed to open GPIO chip '{CHIP}': {e}")
+
+    try:
+        bus = SMBus(1)
+    except (FileNotFoundError, OSError) as e:
+        sys.exit(f"Failed to open I\u00b2C bus: {e}")
+
+    try:
+        with chip, bus:
             line = chip.get_line(PIN)
             line.request(consumer="x708_bat", type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
 

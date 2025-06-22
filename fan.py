@@ -49,7 +49,12 @@ if __name__ == '__main__':
     if os.geteuid() != 0:
         sys.exit('Please run as root.')
 
-    with gpiod.Chip(CHIP) as chip:
+    try:
+        chip = gpiod.Chip(CHIP)
+    except OSError as e:
+        sys.exit(f"Failed to open GPIO chip '{CHIP}': {e}")
+
+    with chip:
         line = chip.get_line(GPIO_PIN)
         line.request(consumer='fan_ctrl', type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
 
