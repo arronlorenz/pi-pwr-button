@@ -40,6 +40,7 @@ start_fan() {
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=1" &
   fan_pid=$!
   state=1
+  logger -t x708-fan "Fan turned on"
 }
 
 stop_fan() {
@@ -47,6 +48,7 @@ stop_fan() {
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=0" &
   fan_pid=$!
   state=0
+  logger -t x708-fan "Fan turned off"
 }
 
 state=0
