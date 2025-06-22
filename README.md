@@ -121,6 +121,11 @@ sudo systemctl enable fan.service
 sudo systemctl start fan.service
 ```
 
+Both `x708-bat.service` and `fan.service` include an
+`ExecStartPre=/bin/sleep 5` directive. This short delay gives the system
+time to initialize the GPIO and I²C devices after boot before the Python
+scripts start.
+
 ## Monitoring the UPS battery
 
 ### Enabling the I²C interface

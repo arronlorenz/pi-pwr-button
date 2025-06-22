@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
+ExecStartPre=/bin/sleep 5
 ExecStart=/usr/local/bin/bat.py
 Restart=on-failure
 
