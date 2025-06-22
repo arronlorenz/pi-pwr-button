@@ -9,27 +9,11 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-# Determine whether pip supports --break-system-packages
-PIP_FLAG=""
-if python3 -m pip install --help | grep -q -- --break-system-packages; then
-  PIP_FLAG="--break-system-packages"
-fi
-
 read -r -p "Install dependencies via apt-get? [y/N] " ans
 if [[ $ans =~ ^[Yy]$ ]]; then
   apt-get update
-  # gpiod provides the gpioset/gpioget tools and has no pip equivalent
-  if ! apt-get install -y gpiod; then
-    echo "Failed to install gpiod with apt. Please install it manually." >&2
-  fi
-
-  # Install Python packages; fall back to pip if apt fails
-  if ! apt-get install -y python3-smbus2; then
-    python3 -m pip install ${PIP_FLAG:+$PIP_FLAG }--upgrade smbus2
-  fi
-
-  if ! apt-get install -y python3-libgpiod; then
-    python3 -m pip install ${PIP_FLAG:+$PIP_FLAG }--upgrade gpiod
+  if ! apt-get install -y gpiod i2c-tools; then
+    echo "Failed to install dependencies with apt. Please install them manually." >&2
   fi
 fi
 
@@ -68,17 +52,17 @@ install_x708_softsd() {
 }
 
 install_bat() {
-  echo "Installing bat.py..."
-  cp bat.py "$INSTALL_DIR/"
-  chmod +x "$INSTALL_DIR/bat.py"
+  echo "Installing bat.sh..."
+  cp bat.sh "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/bat.sh"
   read -r -p "GPIO for shutdown line [13]: " pin
-  sed -i "s/^PIN = .*/PIN = ${pin:-13}/" "$INSTALL_DIR/bat.py"
+  sed -i "s/^PIN=.*/PIN=${pin:-13}/" "$INSTALL_DIR/bat.sh"
   read -r -p "Shutdown voltage threshold [3.00]: " thr
-  sed -i "s/voltage < [0-9.]*:/voltage < ${thr:-3.00}:/" "$INSTALL_DIR/bat.py"
-  read -r -p "Install bat.py as a service? [y/N] " svc
+  sed -i "s/^SHUTDOWN_VOLTAGE=.*/SHUTDOWN_VOLTAGE=${thr:-3.00}/" "$INSTALL_DIR/bat.sh"
+  read -r -p "Install bat.sh as a service? [y/N] " svc
   if [[ $svc =~ ^[Yy]$ ]]; then
     cp x708-bat.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/bat.py|" "$SERVICE_DIR/x708-bat.service"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/bat.sh|" "$SERVICE_DIR/x708-bat.service"
     systemctl daemon-reload
     systemctl enable x708-bat.service
     read -r -p "Start service now? [y/N] " startsvc
@@ -89,19 +73,19 @@ install_bat() {
 }
 
 install_fan() {
-  echo "Installing fan.py..."
-  cp fan.py "$INSTALL_DIR/"
-  chmod +x "$INSTALL_DIR/fan.py"
+  echo "Installing fan.sh..."
+  cp fan.sh "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/fan.sh"
   read -r -p "GPIO pin for fan control [16]: " pin
-  sed -i "s/^GPIO_PIN = .*/GPIO_PIN = ${pin:-16}/" "$INSTALL_DIR/fan.py"
+  sed -i "s/^GPIO_PIN=.*/GPIO_PIN=${pin:-16}/" "$INSTALL_DIR/fan.sh"
   read -r -p "Temp to start fan (C) [55]: " on
-  sed -i "s/^ON_THRESHOLD = .*/ON_THRESHOLD = ${on:-55}/" "$INSTALL_DIR/fan.py"
+  sed -i "s/^ON_THRESHOLD=.*/ON_THRESHOLD=${on:-55}/" "$INSTALL_DIR/fan.sh"
   read -r -p "Temp to stop fan (C) [50]: " off
-  sed -i "s/^OFF_THRESHOLD = .*/OFF_THRESHOLD = ${off:-50}/" "$INSTALL_DIR/fan.py"
-  read -r -p "Install fan.py as a service? [y/N] " svc
+  sed -i "s/^OFF_THRESHOLD=.*/OFF_THRESHOLD=${off:-50}/" "$INSTALL_DIR/fan.sh"
+  read -r -p "Install fan.sh as a service? [y/N] " svc
   if [[ $svc =~ ^[Yy]$ ]]; then
     cp fan.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/fan.py|" "$SERVICE_DIR/fan.service"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/fan.sh|" "$SERVICE_DIR/fan.service"
     systemctl daemon-reload
     systemctl enable fan.service
     read -r -p "Start service now? [y/N] " startsvc
@@ -121,12 +105,12 @@ if [[ $resp =~ ^[Yy]$ ]]; then
   install_x708_softsd
 fi
 
-read -r -p "Install bat.py (monitor battery)? [y/N] " resp
+read -r -p "Install bat.sh (monitor battery)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_bat
 fi
 
-read -r -p "Install fan.py (control fan)? [y/N] " resp
+read -r -p "Install fan.sh (control fan)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
   install_fan
 fi
