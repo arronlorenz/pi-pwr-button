@@ -11,13 +11,16 @@ set -euo pipefail
 
 # Allow overriding the I2C bus used for battery reads
 BUS=${BUS:-1}
+# Allow overriding the GPIO chip and pin used for the fan state
+GPIO_CHIP="${GPIO_CHIP:-/dev/gpiochip0}"
+GPIO_PIN="${GPIO_PIN:-16}"
 
 if [[ $EUID -ne 0 ]]; then
   echo "Please run as root." >&2
   exit 1
 fi
 
-for cmd in systemctl i2cget; do
+for cmd in systemctl i2cget gpioget; do
   if ! command -v "$cmd" >/dev/null; then
     echo "$cmd not found; please install required packages." >&2
     exit 1
@@ -48,6 +51,19 @@ read_capacity() {
   echo "$cap"
 }
 
+read_fan_state() {
+  local val
+  if val=$(gpioget "$GPIO_CHIP" "$GPIO_PIN" 2>/dev/null); then
+    if [[ $val -eq 1 ]]; then
+      echo "ON"
+    else
+      echo "OFF"
+    fi
+  else
+    echo "unknown"
+  fi
+}
+
 show_service_status() {
   local svc=$1
   echo "$svc: $(systemctl is-active "$svc" 2>/dev/null || echo unknown)"
@@ -67,3 +83,5 @@ voltage=$(read_voltage)
 capacity=$(read_capacity)
 printf "Voltage: %.2f V\n" "$voltage"
 printf "Capacity: %d%%\n" "$capacity"
+fan_state=$(read_fan_state)
+printf "Fan: %s\n" "$fan_state"
