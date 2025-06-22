@@ -35,4 +35,9 @@ else
   usec=${usec:0:6}
 fi
 
+# Handle numbers without an integer part (e.g. ".5")
+if [[ -z "$secs" ]]; then
+  secs=0
+fi
+
 gpioset --mode=time --sec="$secs" --usec="$usec" "$GPIO_CHIP" "$BUTTON=1"
