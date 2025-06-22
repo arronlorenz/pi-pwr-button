@@ -52,9 +52,15 @@ if __name__ == '__main__':
         sys.exit('Please run as root.')
 
     try:
-        chip = gpiod.Chip(CHIP, gpiod.Chip.OPEN_BY_PATH)
+        if hasattr(gpiod.Chip, "OPEN_BY_PATH"):
+            chip = gpiod.Chip(CHIP, gpiod.Chip.OPEN_BY_PATH)
+        else:  # gpiod 1.x
+            chip = gpiod.Chip(CHIP)
     except OSError as e:
-        sys.exit(f"Failed to open GPIO chip '{CHIP}': {e}")
+        sys.exit(
+            f"Failed to open GPIO chip '{CHIP}'. "
+            f"Set GPIO_CHIP if the path is different: {e}"
+        )
 
     with chip:
         line = chip.get_line(GPIO_PIN)
