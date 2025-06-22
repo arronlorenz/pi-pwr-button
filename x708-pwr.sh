@@ -27,13 +27,18 @@ cleanup() {
 }
 
 # Keep the boot line asserted while running
-gpioset --mode=signal gpiochip0 "$BOOT=1" &
+err_file="$(mktemp)"
+gpioset --mode=signal gpiochip0 "$BOOT=1" 2>"$err_file" &
 boot_pid=$!
 
+sleep 0.1
 if ! kill -0 "$boot_pid" 2>/dev/null; then
-  echo "Failed to start gpioset" >&2
+  echo "Failed to start gpioset:" >&2
+  cat "$err_file" >&2
+  rm -f "$err_file"
   exit 1
 fi
+rm -f "$err_file"
 
 trap cleanup EXIT
 
