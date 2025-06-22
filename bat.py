@@ -21,7 +21,9 @@ except ImportError:
     )
 
 PIN = 13
-CHIP = "gpiochip0"
+# Allow overriding the GPIO chip path with the GPIO_CHIP environment variable.
+# Default to using /dev/gpiochip0 which works on most systems.
+CHIP = os.environ.get("GPIO_CHIP", "/dev/gpiochip0")
 
 # How often to check the battery state. The Pi can run on battery for hours
 # so reading once per minute is sufficient.
@@ -53,7 +55,7 @@ def main():
     if os.geteuid() != 0:
         sys.exit("Please run as root.")
     try:
-        chip = gpiod.Chip(CHIP)
+        chip = gpiod.Chip(CHIP, gpiod.Chip.OPEN_BY_PATH)
     except OSError as e:
         sys.exit(f"Failed to open GPIO chip '{CHIP}': {e}")
 
