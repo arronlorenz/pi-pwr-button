@@ -5,7 +5,8 @@ Utilities for handling power events on the X708 UPS for the Raspberry Pi 4.
 ## Dependencies
 
 - `gpiod` for the `gpioset`/`gpioget` tools
-- Python 3 with the `smbus2` and `gpiod` packages
+- Python 3 with the `smbus2` and `gpiod` packages (the `python3-smbus2` package may not be
+  available on all distributions)
 
 The scripts check that these tools are installed and will exit with an error if
 they are missing.
@@ -16,11 +17,19 @@ Install them on a Debian-based system with:
 sudo apt-get install gpiod python3-libgpiod python3-smbus2
 ```
 
-If `python3-smbus2` is not available on your system,
-install the package with pip instead:
+If `python3-smbus2` is missing you can install `smbus2` with pip. Use the
+`--break-system-packages` flag if your pip version supports it:
 
 ```bash
-python3 -m pip install smbus2
+python3 -m pip install smbus2 --break-system-packages
+```
+
+If pip reports that the flag is unknown, upgrade pip first and run the command
+again:
+
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip install smbus2 --break-system-packages
 ```
 
 If `python3-libgpiod` is not available,
