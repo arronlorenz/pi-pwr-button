@@ -61,7 +61,7 @@ Controls a cooling fan connected to a GPIO pin based on the CPU temperature.
 It polls the temperature every few seconds using `vcgencmd` and turns the fan
 on above the configured threshold. The fan is switched off again when the
 temperature falls below a lower threshold. Run the script as root so it can
-access the GPIO line. A `fan.service` unit is provided to run it automatically.
+access the GPIO line. An `x708-fan.service` unit is provided to run it automatically.
 
 All scripts use `/dev/gpiochip0` by default. Set the `GPIO_CHIP` environment
 variable (or override it in the service unit) to point at a different chip
@@ -95,10 +95,10 @@ A third unit file runs `x708-fan.sh` to automatically control the cooling fan:
 
 ```bash
 sudo cp x708-fan.sh /usr/local/bin/
-sudo cp fan.service /etc/systemd/system/
+sudo cp x708-fan.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable fan.service
-sudo systemctl start fan.service
+sudo systemctl enable x708-fan.service
+sudo systemctl start x708-fan.service
 ```
 
 ## Monitoring the UPS battery

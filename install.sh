@@ -84,13 +84,13 @@ install_fan() {
   sed -i "s/^OFF_THRESHOLD=.*/OFF_THRESHOLD=${off:-50}/" "$INSTALL_DIR/x708-fan.sh"
   read -r -p "Install x708-fan.sh as a service? [y/N] " svc
   if [[ $svc =~ ^[Yy]$ ]]; then
-    cp fan.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-fan.sh|" "$SERVICE_DIR/fan.service"
+    cp x708-fan.service "$SERVICE_DIR/"
+    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-fan.sh|" "$SERVICE_DIR/x708-fan.service"
     systemctl daemon-reload
-    systemctl enable fan.service
+    systemctl enable x708-fan.service
     read -r -p "Start service now? [y/N] " startsvc
     if [[ $startsvc =~ ^[Yy]$ ]]; then
-      systemctl start fan.service
+      systemctl start x708-fan.service
     fi
   fi
 }
