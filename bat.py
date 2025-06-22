@@ -53,6 +53,11 @@ def main():
     if os.geteuid() != 0:
         sys.exit("Please run as root.")
     try:
+        if not os.path.exists(f"/dev/{CHIP}"):
+            sys.exit(
+                f"/dev/{CHIP} not found. Make sure the GPIO character device is enabled."
+            )
+
         with gpiod.Chip(CHIP) as chip, SMBus(1) as bus:
             line = chip.get_line(PIN)
             line.request(consumer="x708_bat", type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
