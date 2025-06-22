@@ -17,13 +17,23 @@ REBOOTPULSEMINIMUM=200
 REBOOTPULSEMAXIMUM=600
 BOOT=12
 
+# PID of the background gpioset process
+boot_pid=""
+
+cleanup() {
+  if [[ -n "$boot_pid" ]] && kill -0 "$boot_pid" 2>/dev/null; then
+    kill "$boot_pid"
+  fi
+}
+
 # Keep the boot line asserted while running
 gpioset --mode=signal gpiochip0 "$BOOT=1" &
 boot_pid=$!
 
-cleanup() {
-  kill "$boot_pid"
-}
+if ! kill -0 "$boot_pid" 2>/dev/null; then
+  echo "Failed to start gpioset" >&2
+  exit 1
+fi
 
 trap cleanup EXIT
 
