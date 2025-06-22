@@ -18,7 +18,7 @@ REBOOTPULSEMAXIMUM=600
 BOOT=12
 
 # Keep the boot line asserted while running
-gpioset --mode=signal --background gpiochip0 $BOOT=1
+gpioset --mode=signal gpiochip0 "$BOOT=1" &
 boot_pid=$!
 
 cleanup() {
