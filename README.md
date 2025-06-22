@@ -118,6 +118,22 @@ sudo systemctl start fan.service
 
 ## Monitoring the UPS battery
 
+### Enabling the I²C interface
+
+The UPS communicates over the Pi's I²C bus. Make sure the interface is enabled
+before running `bat.py` or the `x708-bat.service` unit. Use
+`raspi-config` to enable it under **Interface Options &rarr; I2C**:
+
+```bash
+sudo raspi-config
+```
+
+Alternatively edit `/boot/config.txt` and add
+`dtparam=i2c_arm=on`, then reboot.
+
+If the battery service fails to start with errors related to I²C, double-check
+that the interface is enabled and that you have rebooted after making changes.
+
 `bat.py` reads the battery voltage and capacity from the X708 over I2C using
 `smbus2`. It polls once per minute and when the voltage drops below 3&nbsp;V the
 script toggles the shutdown line via `gpiod`. Run it as root:
