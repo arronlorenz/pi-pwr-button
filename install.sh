@@ -14,6 +14,14 @@ packages=()
 # Packages that have already been installed
 installed_pkgs=()
 
+stop_service_if_running() {
+  local svc=$1
+  if systemctl is-active --quiet "$svc"; then
+    echo "Stopping running service $svc..."
+    systemctl stop "$svc"
+  fi
+}
+
 install_packages() {
   if (( ${#packages[@]} )); then
     mapfile -t uniq_pkgs < <(printf '%s\n' "${packages[@]}" | sort -u)
@@ -40,8 +48,7 @@ install_packages() {
 
 install_x708_pwr() {
   echo "Installing x708-pwr.sh..."
-  packages+=(gpiod)
-  install_packages
+  stop_service_if_running x708-pwr.service
   cp x708-pwr.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-pwr.sh"
   read -r -p "GPIO for shutdown button [5]: " shutdown
@@ -53,23 +60,28 @@ install_x708_pwr() {
   sed -i "s/^REBOOTPULSEMINIMUM=.*/REBOOTPULSEMINIMUM=${min:-200}/" "$INSTALL_DIR/x708-pwr.sh"
   sed -i "s/^REBOOTPULSEMAXIMUM=.*/REBOOTPULSEMAXIMUM=${max:-600}/" "$INSTALL_DIR/x708-pwr.sh"
 
-  read -r -p "Install x708-pwr.sh as a service? [y/N] " svc
-  if [[ $svc =~ ^[Yy]$ ]]; then
+  svc_file="$SERVICE_DIR/x708-pwr.service"
+  if [[ -f "$svc_file" ]]; then
+    echo "Updating service file for x708-pwr..."
     cp x708-pwr.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-pwr.sh|" "$SERVICE_DIR/x708-pwr.service"
-    systemctl daemon-reload
-    systemctl enable x708-pwr.service
-    read -r -p "Start service now? [y/N] " startsvc
-    if [[ $startsvc =~ ^[Yy]$ ]]; then
-      systemctl start x708-pwr.service
+  else
+    read -r -p "Install x708-pwr.sh as a service? [y/N] " svc
+    if [[ ! $svc =~ ^[Yy]$ ]]; then
+      return
     fi
+    cp x708-pwr.service "$SERVICE_DIR/"
+  fi
+  sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-pwr.sh|" "$svc_file"
+  systemctl daemon-reload
+  systemctl enable x708-pwr.service
+  read -r -p "Start service now? [y/N] " startsvc
+  if [[ $startsvc =~ ^[Yy]$ ]]; then
+    systemctl start x708-pwr.service
   fi
 }
 
 install_x708_softsd() {
   echo "Installing x708-softsd.sh..."
-  packages+=(gpiod)
-  install_packages
   cp x708-softsd.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-softsd.sh"
   read -r -p "GPIO for power cut signal [13]: " button
@@ -78,31 +90,36 @@ install_x708_softsd() {
 
 install_bat() {
   echo "Installing x708-bat.sh..."
-  packages+=(gpiod i2c-tools)
-  install_packages
+  stop_service_if_running x708-bat.service
   cp x708-bat.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-bat.sh"
   read -r -p "GPIO for shutdown line [13]: " pin
   sed -i "s/^PIN=.*/PIN=${pin:-13}/" "$INSTALL_DIR/x708-bat.sh"
   read -r -p "Shutdown voltage threshold [3.00]: " thr
   sed -i "s/^SHUTDOWN_VOLTAGE=.*/SHUTDOWN_VOLTAGE=${thr:-3.00}/" "$INSTALL_DIR/x708-bat.sh"
-  read -r -p "Install x708-bat.sh as a service? [y/N] " svc
-  if [[ $svc =~ ^[Yy]$ ]]; then
+  svc_file="$SERVICE_DIR/x708-bat.service"
+  if [[ -f "$svc_file" ]]; then
+    echo "Updating service file for x708-bat..."
     cp x708-bat.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-bat.sh|" "$SERVICE_DIR/x708-bat.service"
-    systemctl daemon-reload
-    systemctl enable x708-bat.service
-    read -r -p "Start service now? [y/N] " startsvc
-    if [[ $startsvc =~ ^[Yy]$ ]]; then
-      systemctl start x708-bat.service
+  else
+    read -r -p "Install x708-bat.sh as a service? [y/N] " svc
+    if [[ ! $svc =~ ^[Yy]$ ]]; then
+      return
     fi
+    cp x708-bat.service "$SERVICE_DIR/"
+  fi
+  sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-bat.sh|" "$svc_file"
+  systemctl daemon-reload
+  systemctl enable x708-bat.service
+  read -r -p "Start service now? [y/N] " startsvc
+  if [[ $startsvc =~ ^[Yy]$ ]]; then
+    systemctl start x708-bat.service
   fi
 }
 
 install_fan() {
   echo "Installing x708-fan.sh..."
-  packages+=(gpiod libraspberrypi-bin)
-  install_packages
+  stop_service_if_running x708-fan.service
   cp x708-fan.sh "$INSTALL_DIR/"
   chmod +x "$INSTALL_DIR/x708-fan.sh"
   read -r -p "GPIO pin for fan control [16]: " pin
@@ -111,37 +128,69 @@ install_fan() {
   sed -i "s/^ON_THRESHOLD=.*/ON_THRESHOLD=${on:-55}/" "$INSTALL_DIR/x708-fan.sh"
   read -r -p "Temp to stop fan (C) [50]: " off
   sed -i "s/^OFF_THRESHOLD=.*/OFF_THRESHOLD=${off:-50}/" "$INSTALL_DIR/x708-fan.sh"
-  read -r -p "Install x708-fan.sh as a service? [y/N] " svc
-  if [[ $svc =~ ^[Yy]$ ]]; then
+  svc_file="$SERVICE_DIR/x708-fan.service"
+  if [[ -f "$svc_file" ]]; then
+    echo "Updating service file for x708-fan..."
     cp x708-fan.service "$SERVICE_DIR/"
-    sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-fan.sh|" "$SERVICE_DIR/x708-fan.service"
-    systemctl daemon-reload
-    systemctl enable x708-fan.service
-    read -r -p "Start service now? [y/N] " startsvc
-    if [[ $startsvc =~ ^[Yy]$ ]]; then
-      systemctl start x708-fan.service
+  else
+    read -r -p "Install x708-fan.sh as a service? [y/N] " svc
+    if [[ ! $svc =~ ^[Yy]$ ]]; then
+      return
     fi
+    cp x708-fan.service "$SERVICE_DIR/"
+  fi
+  sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/x708-fan.sh|" "$svc_file"
+  systemctl daemon-reload
+  systemctl enable x708-fan.service
+  read -r -p "Start service now? [y/N] " startsvc
+  if [[ $startsvc =~ ^[Yy]$ ]]; then
+    systemctl start x708-fan.service
   fi
 }
 
+selected_scripts=()
+
 read -r -p "Install x708-pwr.sh (monitor buttons)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
-  install_x708_pwr
+  selected_scripts+=(x708_pwr)
+  packages+=(gpiod)
 fi
 
 read -r -p "Install x708-softsd.sh (send power-off signal)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
-  install_x708_softsd
+  selected_scripts+=(x708_softsd)
+  packages+=(gpiod)
 fi
 
 read -r -p "Install x708-bat.sh (monitor battery)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
-  install_bat
+  selected_scripts+=(bat)
+  packages+=(gpiod i2c-tools)
 fi
 
 read -r -p "Install x708-fan.sh (control fan)? [y/N] " resp
 if [[ $resp =~ ^[Yy]$ ]]; then
-  install_fan
+  selected_scripts+=(fan)
+  packages+=(gpiod libraspberrypi-bin)
 fi
+
+install_packages
+
+for scr in "${selected_scripts[@]}"; do
+  case $scr in
+    x708_pwr)
+      install_x708_pwr
+      ;;
+    x708_softsd)
+      install_x708_softsd
+      ;;
+    bat)
+      install_bat
+      ;;
+    fan)
+      install_fan
+      ;;
+  esac
+done
 
 echo "Installation complete."
