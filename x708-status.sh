@@ -1,4 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# Bail out early if the script isn't executed with Bash. When run with a
+# POSIX shell like dash, options such as `pipefail` are not supported.
+if [ -z "${BASH_VERSION:-}" ]; then
+  echo "This script must be run with bash." >&2
+  exit 1
+fi
+
 set -euo pipefail
 
 # Allow overriding the I2C bus used for battery reads
