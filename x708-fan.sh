@@ -9,6 +9,10 @@ OFF_THRESHOLD=50
 SLEEP_INTERVAL=5
 GPIO_PIN=16
 
+log() {
+  echo "$(date '+%F %T') $*"
+}
+
 if [[ $OFF_THRESHOLD -ge $ON_THRESHOLD ]]; then
   echo "OFF_THRESHOLD must be less than ON_THRESHOLD" >&2
   exit 1
@@ -40,7 +44,7 @@ start_fan() {
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=1" &
   fan_pid=$!
   state=1
-  logger -t x708-fan "Fan turned on"
+  log "Fan ON  (temp ${temp_int}°C ≥ $ON_THRESHOLD°C)"
 }
 
 stop_fan() {
@@ -48,7 +52,7 @@ stop_fan() {
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=0" &
   fan_pid=$!
   state=0
-  logger -t x708-fan "Fan turned off"
+  log "Fan OFF (temp ${temp_int}°C ≤ $OFF_THRESHOLD°C)"
 }
 
 state=0
