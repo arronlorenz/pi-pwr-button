@@ -5,13 +5,15 @@ GPIO_CHIP="${GPIO_CHIP:-/dev/gpiochip0}"
 PIN=13
 CHECK_INTERVAL=60
 SHUTDOWN_VOLTAGE=3.00
+# Pin used for AC power loss detection. High = power lost
+AC_LOSS_PIN="${AC_LOSS_PIN:-6}"
 
 if [[ $EUID -ne 0 ]]; then
   echo "Please run as root." >&2
   exit 1
 fi
 
-for cmd in gpioset i2cget; do
+for cmd in gpioset gpioget i2cget; do
   if ! command -v "$cmd" >/dev/null; then
     echo "$cmd not found; please install the gpiod and i2c-tools packages." >&2
     exit 1
@@ -48,6 +50,13 @@ while true; do
   capacity=$(read_capacity)
   printf "Voltage:%5.2fV\n" "$voltage"
   printf "Battery:%5i%%\n" "$capacity"
+
+  power_loss=$(gpioget "$GPIO_CHIP" "$AC_LOSS_PIN")
+  if [[ $power_loss = 1 ]]; then
+    echo "AC Power loss detected"
+  else
+    echo "AC Power OK"
+  fi
 
   if (( capacity >= 100 )); then
     echo "Battery FULL"
