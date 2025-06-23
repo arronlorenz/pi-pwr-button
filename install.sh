@@ -46,6 +46,14 @@ install_packages() {
   fi
 }
 
+install_shutdown_hook() {
+  echo "Installing systemd shutdown hook..."
+  local dir="/lib/systemd/system-shutdown"
+  mkdir -p "$dir"
+  cp x708-shutdown-hook.sh "$dir/x708-softsd"
+  chmod +x "$dir/x708-softsd"
+}
+
 install_x708_pwr() {
   echo "Installing x708-pwr.sh..."
   stop_service_if_running x708-pwr.service
@@ -86,6 +94,10 @@ install_x708_softsd() {
   chmod +x "$INSTALL_DIR/x708-softsd.sh"
   read -r -p "GPIO for power cut signal [13]: " button
   sed -i "s/^BUTTON=.*/BUTTON=${button:-13}/" "$INSTALL_DIR/x708-softsd.sh"
+  read -r -p "Install shutdown hook to run on poweroff? [y/N] " hook
+  if [[ $hook =~ ^[Yy]$ ]]; then
+    install_shutdown_hook
+  fi
 }
 
 install_bat() {

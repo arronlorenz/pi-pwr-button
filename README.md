@@ -26,6 +26,8 @@ Existing services are stopped automatically so scripts can be updated.
 ## Scripts
 - **x708-pwr.sh** – monitor the shutdown and reboot buttons.
 - **x708-softsd.sh** – pulse GPIO 13 to cut power after a delay.
+- **x708-shutdown-hook.sh** – optional systemd hook to call `x708-softsd.sh`
+  when the system powers off.
 - **x708-bat.sh** – read the battery over I²C, detect AC power loss, and shut down when low.
 - **x708-fan.sh** – switch the fan between low and high speed based on CPU temperature.
 - **x708-status.sh** – show battery status, fan state, AC power state, and service state.
