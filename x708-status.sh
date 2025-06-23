@@ -14,6 +14,8 @@ BUS=${BUS:-1}
 # Allow overriding the GPIO chip and pin used for the fan state
 GPIO_CHIP="${GPIO_CHIP:-/dev/gpiochip0}"
 GPIO_PIN="${GPIO_PIN:-16}"
+# Pin used for AC power loss detection. High = power lost
+AC_LOSS_PIN="${AC_LOSS_PIN:-6}"
 
 if [[ $EUID -ne 0 ]]; then
   echo "Please run as root." >&2
@@ -90,5 +92,13 @@ voltage=$(read_voltage)
 capacity=$(read_capacity)
 printf "Voltage: %.2f V\n" "$voltage"
 printf "Capacity: %d%%\n" "$capacity"
+
+power_loss=$(gpioget "$GPIO_CHIP" "$AC_LOSS_PIN")
+if [[ $power_loss = 1 ]]; then
+  echo "AC Power loss detected"
+else
+  echo "AC Power OK"
+fi
+
 fan_state=$(read_fan_state)
 printf "Fan: %s\n" "$fan_state"
