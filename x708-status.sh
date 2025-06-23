@@ -64,11 +64,11 @@ read_fan_state() {
     local last
     last=$(set +o pipefail
            journalctl -u x708-fan.service "${jctl_opts[@]}" |
-           grep -m1 -E "Fan (ON|OFF)") || true
+           grep -m1 -E "Fan (HIGH|LOW)") || true
 
     case $last in
-        *"Fan ON"*)  echo "ON"  ;;
-        *"Fan OFF"*) echo "OFF" ;;
+        *"Fan HIGH"*) echo "HIGH" ;;
+        *"Fan LOW"*)  echo "LOW"  ;;
         *)           echo "unknown" ;;
     esac
 }
@@ -101,4 +101,4 @@ else
 fi
 
 fan_state=$(read_fan_state)
-printf "Fan: %s\n" "$fan_state"
+printf "Fan speed: %s\n" "$fan_state"
