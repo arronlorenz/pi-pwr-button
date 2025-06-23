@@ -52,10 +52,16 @@ read_capacity() {
 }
 
 read_fan_state() {
+    # Build compatible journalctl options
+    local jctl_opts=(--no-pager -r)
+    if journalctl --help 2>&1 | grep -Fq -- '--no-legend'; then
+        jctl_opts+=(--no-legend)
+    fi
+
     # suspend pipefail just for this command substitution
     local last
     last=$(set +o pipefail
-           journalctl -u x708-fan.service --no-pager --no-legend -r |
+           journalctl -u x708-fan.service "${jctl_opts[@]}" |
            grep -m1 -E "Fan (ON|OFF)") || true
 
     case $last in
