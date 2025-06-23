@@ -5,6 +5,8 @@ set -euo pipefail
 GPIO_CHIP="${GPIO_CHIP:-/dev/gpiochip0}"
 
 ON_THRESHOLD=55  # degrees Celsius
+# Switch to low speed when below OFF_THRESHOLD and high speed when above
+# ON_THRESHOLD.
 OFF_THRESHOLD=50
 SLEEP_INTERVAL=5
 GPIO_PIN=16
@@ -39,38 +41,38 @@ cleanup() {
 }
 trap cleanup EXIT
 
-start_fan() {
+set_high_speed() {
   local curr_temp=$1
   cleanup
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=1" &
   fan_pid=$!
   state=1
-  log "Fan ON  (temp ${curr_temp}°C ≥ $ON_THRESHOLD°C)"
+  log "Fan HIGH (temp ${curr_temp}°C ≥ $ON_THRESHOLD°C)"
 }
 
-stop_fan() {
+set_low_speed() {
   local curr_temp=$1
   cleanup
   gpioset --mode=signal "$GPIO_CHIP" "$GPIO_PIN=0" &
   fan_pid=$!
   state=0
-  log "Fan OFF (temp ${curr_temp}°C ≤ $OFF_THRESHOLD°C)"
+  log "Fan LOW (temp ${curr_temp}°C ≤ $OFF_THRESHOLD°C)"
 }
 
 temp=$(vcgencmd measure_temp | awk -F"[='C]" '{print $2}')
 temp_int=$(printf '%.0f' "$temp")
 
 state=0
-stop_fan "$temp_int"
+set_low_speed "$temp_int"
 
 while true; do
   temp=$(vcgencmd measure_temp | awk -F"[='C]" '{print $2}')
   temp_int=$(printf '%.0f' "$temp")
 
   if (( temp_int > ON_THRESHOLD && state == 0 )); then
-    start_fan "$temp_int"
+    set_high_speed "$temp_int"
   elif (( temp_int < OFF_THRESHOLD && state == 1 )); then
-    stop_fan "$temp_int"
+    set_low_speed "$temp_int"
   fi
 
   sleep "$SLEEP_INTERVAL"
