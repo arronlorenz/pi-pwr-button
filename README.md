@@ -26,11 +26,12 @@ Existing services are stopped automatically so scripts can be updated.
 ## Scripts
 - **x708-pwr.sh** – monitor the shutdown and reboot buttons.
 - **x708-softsd.sh** – pulse GPIO 13 to cut power after a delay.
-- **x708-bat.sh** – read the battery over I²C and shut down when low.
+- **x708-bat.sh** – read the battery over I²C, detect AC power loss, and shut down when low.
 - **x708-fan.sh** – control a fan based on CPU temperature.
 - **x708-status.sh** – show battery status, fan state, and service state.
 
 Set `GPIO_CHIP` (default `/dev/gpiochip0`) to use a different GPIO chip.
+Set `AC_LOSS_PIN` (default `6`) to change the power loss detection pin.
 
 ## Enabling I²C
 Enable the Pi's I²C interface before running `x708-bat.sh`:
