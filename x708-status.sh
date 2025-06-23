@@ -52,12 +52,16 @@ read_capacity() {
 }
 
 read_fan_state() {
-  local val
-  if val=$(gpioget "$GPIO_CHIP" "$GPIO_PIN" 2>/dev/null); then
-    if [[ $val -eq 1 ]]; then
+  local last
+  # Look for the most recent ON/OFF line in the service journal.
+  if last=$(journalctl -u x708-fan.service -n 20 --no-pager --no-legend 2>/dev/null | \
+      grep -E "Fan (ON|OFF)" | tail -n 1); then
+    if [[ $last == *"Fan ON"* ]]; then
       echo "ON"
-    else
+    elif [[ $last == *"Fan OFF"* ]]; then
       echo "OFF"
+    else
+      echo "unknown"
     fi
   else
     echo "unknown"
