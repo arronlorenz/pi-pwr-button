@@ -55,7 +55,7 @@ read_fan_state() {
   local last
   # Find the most recent ON/OFF line in the service journal.
   if last=$(journalctl -u x708-fan.service --no-pager --no-legend -r 2>/dev/null \
-      | grep -m1 -E "Fan (ON|OFF)"); then
+      | grep -E "Fan (ON|OFF)" | head -n1); then
     if [[ $last == *"Fan ON"* ]]; then
       echo "ON"
     elif [[ $last == *"Fan OFF"* ]]; then
