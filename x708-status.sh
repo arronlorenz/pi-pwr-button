@@ -52,19 +52,17 @@ read_capacity() {
 }
 
 read_fan_state() {
-  local last
-  # Find the most recent ON/OFF line in the service journal. Temporarily
-  # disable pipefail so the pipeline can fail without aborting the script.
-  last=$(set +o pipefail
-         journalctl -u x708-fan.service --no-pager --no-legend -r 2>/dev/null |
-         grep -m1 -E "Fan (ON|OFF)"
-        ) || true
+    # suspend pipefail just for this command substitution
+    local last
+    last=$(set +o pipefail
+           journalctl -u x708-fan.service --no-pager --no-legend -r |
+           grep -m1 -E "Fan (ON|OFF)") || true
 
-  case $last in
-    *"Fan ON"*)  echo "ON"  ;;
-    *"Fan OFF"*) echo "OFF" ;;
-    *)           echo "unknown" ;;
-  esac
+    case $last in
+        *"Fan ON"*)  echo "ON"  ;;
+        *"Fan OFF"*) echo "OFF" ;;
+        *)           echo "unknown" ;;
+    esac
 }
 
 show_service_status() {
