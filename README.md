@@ -35,6 +35,18 @@ Existing services are stopped automatically so scripts can be updated.
 Set `GPIO_CHIP` (default `/dev/gpiochip0`) to use a different GPIO chip.
 Set `AC_LOSS_PIN` (default `6`) to change the power loss detection pin.
 
+Most scripts need root privileges to access GPIO and I²C. Use `sudo` when
+running them manually.
+
+### Configuration
+The behaviour of the scripts can be tweaked via environment variables:
+
+- `x708-bat.sh` – `PIN` for the shutdown signal, `CHECK_INTERVAL` in seconds,
+  and `SHUTDOWN_VOLTAGE` for the low-battery threshold.
+- `x708-fan.sh` – `ON_THRESHOLD`, `OFF_THRESHOLD`, `SLEEP_INTERVAL`, and
+  `GPIO_PIN` controlling the fan.
+- `x708-status.sh` – `BUS` for the I²C bus and `GPIO_PIN` for the fan state.
+
 ## Enabling I²C
 Enable the Pi's I²C interface before running `x708-bat.sh`:
 
